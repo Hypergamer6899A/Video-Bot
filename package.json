@@ -1,7 +1,7 @@
 {
   "name": "video-bot",
-  "version": "1.0.1",
-  "description": "A Discord bot that notifies when a YouTube channel uploads a new video.",
+  "version": "1.0.2",
+  "description": "A Discord bot that pings a role when a YouTube channel uploads a new video.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,6 +10,7 @@
     "axios": "^1.7.4",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
+    "express": "^4.21.1",
     "fs-extra": "^11.2.0",
     "googleapis": "^144.0.0",
     "node-fetch": "^3.3.2"
