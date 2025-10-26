@@ -1,0 +1,15 @@
+{
+  "name": "youtube-alert-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that pings a role when a new YouTube video is uploaded.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "axios": "^1.7.4",
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}
