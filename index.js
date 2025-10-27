@@ -91,9 +91,20 @@ async function checkForNewVideo() {
 // --- Bot Ready Event ---
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
-  checkForNewVideo(); // Run once at startup
-  setInterval(checkForNewVideo, CHECK_INTERVAL); // Then every 1 min
+
+  // Set bot presence
+  client.user.setPresence({
+    activities: [{ name: `Goshiggy sleep`, type: 3 }],
+    status: "online",
+  });
+
+  // Run once at startup
+  checkForNewVideo();
+
+  // Then every 1 min
+  setInterval(checkForNewVideo, CHECK_INTERVAL);
 });
+
 
 // --- Keepalive for Render ---
 const app = express();
