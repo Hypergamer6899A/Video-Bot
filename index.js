@@ -14,7 +14,7 @@ const YT_API_KEY = process.env.YT_API_KEY;
 const YT_CHANNEL_ID = process.env.YT_CHANNEL_ID;
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
 const PING_ROLE_ID = process.env.PING_ROLE_ID;
-const CHECK_INTERVAL = 15 * 60 * 1000; // every 30 minutes
+const CHECK_INTERVAL = 865000; // every 15 minutes
 const DATA_FILE = "./lastVideo.json";
 
 // --- Fetch latest video ---
