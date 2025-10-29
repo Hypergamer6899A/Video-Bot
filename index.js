@@ -91,7 +91,7 @@ async function checkForNewVideo() {
       const channel = await client.channels.fetch(DISCORD_CHANNEL_ID);
       if (channel) {
         await channel.send(
-          `<@&${PING_ROLE_ID}> GoShiggy just dropped a new video! 🎬\n**${latest.title}**\n${latest.url}`
+          `<@&${PING_ROLE_ID}> GoShiggy just dropped a new video! \n**${latest.title}**\n${latest.url}`
         );
         console.log("✅ Message sent to Discord!");
       } else {
@@ -115,7 +115,7 @@ client.once("ready", () => {
 
   // Presence
   client.user.setPresence({
-    activities: [{ name: "Sub to GoShiggy 📺", type: 3 }],
+    activities: [{ name: "Sub to GoShiggy", type: 3 }],
     status: "online",
   });
 
