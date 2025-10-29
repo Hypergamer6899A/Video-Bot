@@ -66,7 +66,7 @@ async function checkForNewVideo() {
   const now = Date.now();
   const ageHours = (now - publishedTime) / (1000 * 60 * 60);
 
-  if (ageHours > 24) {
+  if (ageHours > 2) {
     console.log(`🕒 Latest video (${latest.title}) is ${ageHours.toFixed(1)}h old. Ignored.`);
     return;
   }
