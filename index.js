@@ -1,3 +1,4 @@
+// --- Imports ---
 const { Client, GatewayIntentBits } = require("discord.js");
 const axios = require("axios");
 const express = require("express");
@@ -14,10 +15,16 @@ const YT_API_KEY = process.env.YT_API_KEY;
 const YT_CHANNEL_ID = process.env.YT_CHANNEL_ID;
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
 const PING_ROLE_ID = process.env.PING_ROLE_ID;
-const CHECK_INTERVAL = 865000; // every 15 minutes
+const CHECK_INTERVAL = 60 * 1000; // minute
 const DATA_FILE = "./lastVideo.json";
 
-// --- Fetch latest video ---
+// --- Safety Check for Env Vars ---
+if (!YT_API_KEY || !YT_CHANNEL_ID || !DISCORD_CHANNEL_ID || !PING_ROLE_ID || !process.env.TOKEN) {
+  console.error("❌ Missing one or more required environment variables.");
+  process.exit(1);
+}
+
+// --- Helper: Fetch latest video ---
 async function getLatestVideo() {
   try {
     const res = await axios.get("https://www.googleapis.com/youtube/v3/search", {
@@ -27,7 +34,7 @@ async function getLatestVideo() {
         part: "snippet",
         order: "date",
         maxResults: 1,
-        type: "video", // ensures only videos (not shorts/playlists)
+        type: "video",
       },
     });
 
@@ -41,6 +48,7 @@ async function getLatestVideo() {
       id: item.id.videoId,
       title: item.snippet.title,
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      publishedAt: item.snippet.publishedAt,
     };
   } catch (err) {
     console.error("❌ Failed to fetch YouTube data:", err.response?.data || err.message);
@@ -48,12 +56,23 @@ async function getLatestVideo() {
   }
 }
 
-// --- Check for new upload ---
+// --- Check for new uploads ---
 async function checkForNewVideo() {
   const latest = await getLatestVideo();
   if (!latest) return;
 
-  let saved = { lastVideoId: "" };
+  // --- Ignore videos older than 24h ---
+  const publishedTime = new Date(latest.publishedAt).getTime();
+  const now = Date.now();
+  const ageHours = (now - publishedTime) / (1000 * 60 * 60);
+
+  if (ageHours > 24) {
+    console.log(`🕒 Latest video (${latest.title}) is ${ageHours.toFixed(1)}h old. Ignored.`);
+    return;
+  }
+
+  // --- Load or create cache file ---
+  let saved = { lastVideoId: "", lastTimestamp: 0 };
   try {
     if (await fs.pathExists(DATA_FILE)) {
       saved = await fs.readJson(DATA_FILE);
@@ -64,6 +83,7 @@ async function checkForNewVideo() {
     console.error("⚠️ Could not read or create lastVideo.json:", e.message);
   }
 
+  // --- Detect new video ---
   if (saved.lastVideoId !== latest.id) {
     console.log(`🎥 New video detected: ${latest.title} (${latest.url})`);
 
@@ -71,7 +91,7 @@ async function checkForNewVideo() {
       const channel = await client.channels.fetch(DISCORD_CHANNEL_ID);
       if (channel) {
         await channel.send(
-          `<@&${PING_ROLE_ID}> GoShiggy just dropped a new video! 🎬\n${latest.url}`
+          `<@&${PING_ROLE_ID}> GoShiggy just dropped a new video! 🎬\n**${latest.title}**\n${latest.url}`
         );
         console.log("✅ Message sent to Discord!");
       } else {
@@ -82,37 +102,37 @@ async function checkForNewVideo() {
     }
 
     saved.lastVideoId = latest.id;
+    saved.lastTimestamp = now;
     await fs.writeJson(DATA_FILE, saved, { spaces: 2 });
   } else {
     console.log("⏳ No new videos found.");
   }
 }
 
-// --- Bot Ready Event ---
+// --- On Ready ---
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 
-  // Set bot presence
+  // Presence
   client.user.setPresence({
-    activities: [{ name: `Sub to Goshiggy`, type: 3 }],
+    activities: [{ name: "Sub to GoShiggy 📺", type: 3 }],
     status: "online",
   });
 
-  // Run once at startup
+  // Run immediately, then on interval
   checkForNewVideo();
-
-  // Then every 1 min
   setInterval(checkForNewVideo, CHECK_INTERVAL);
 });
 
-
-// --- Keepalive for Render ---
+// --- Keepalive for Render / Ping ---
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.get("/", (_, res) => res.send("YouTube alert bot is running."));
+app.get("/", (_, res) => res.send("✅ YouTube Alert Bot is running."));
 app.listen(PORT, () =>
   console.log(`🌐 Web server listening on port ${PORT} (pid=${process.pid})`)
 );
 
 // --- Login ---
-client.login(process.env.TOKEN).catch(console.error);
+client.login(process.env.TOKEN).catch((err) => {
+  console.error("❌ Discord login failed:", err.message);
+});
