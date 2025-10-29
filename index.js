@@ -94,7 +94,7 @@ client.once("ready", () => {
 
   // Set bot presence
   client.user.setPresence({
-    activities: [{ name: `Goshiggy sleep`, type: 3 }],
+    activities: [{ name: `Sub to Goshiggy`, type: 3 }],
     status: "online",
   });
 
